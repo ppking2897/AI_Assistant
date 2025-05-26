@@ -6,8 +6,11 @@ import com.bianca.ai_assistant.infrastructure.TaskEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 
@@ -23,6 +26,9 @@ import kotlinx.coroutines.launch
  * selectTask：設定目前選取的任務（可用於彈出編輯視窗等場景）
  */
 
+enum class TaskFilter {
+    ALL, UNFINISHED, FINISHED
+}
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(private val repository: TaskRepository) : ViewModel() {
@@ -30,7 +36,36 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
     private val _tasks = MutableStateFlow<List<TaskEntity>>(emptyList())
     val tasks: StateFlow<List<TaskEntity>> = _tasks.asStateFlow()
 
-    init { loadTasks() }
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _filter = MutableStateFlow(TaskFilter.ALL)
+    val filter: StateFlow<TaskFilter> = _filter
+
+
+    val filteredTasks: StateFlow<List<TaskEntity>> =
+        combine(tasks, searchQuery, filter) { list, query, filterType ->
+            list
+                .filter {
+                    // 狀態篩選
+                    when (filterType) {
+                        TaskFilter.ALL -> true
+                        TaskFilter.UNFINISHED -> !it.isDone
+                        TaskFilter.FINISHED -> it.isDone
+                    }
+                }
+                .filter {
+                    // 關鍵字搜尋
+                    query.isBlank() || it.title.contains(query, true) || (it.description?.contains(
+                        query,
+                        true
+                    ) == true)
+                }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        loadTasks()
+    }
 
     fun loadTasks() {
         viewModelScope.launch { _tasks.value = repository.getAllTasks() }
@@ -64,5 +99,13 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
             loadTasks()
         }
     }
+
+    fun setSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+    fun setFilter(filter: TaskFilter) {
+        _filter.value = filter
+    }
+
 }
 

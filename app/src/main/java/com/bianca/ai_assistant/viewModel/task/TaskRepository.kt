@@ -1,0 +1,32 @@
+package com.bianca.ai_assistant.viewModel.task
+
+import com.bianca.ai_assistant.infrastructure.TaskDao
+import com.bianca.ai_assistant.infrastructure.TaskEntity
+
+interface TaskRepository {
+    suspend fun getAllTasks(): List<TaskEntity>
+    suspend fun addTask(task: TaskEntity)
+    suspend fun updateTask(task: TaskEntity)
+    suspend fun deleteTask(task: TaskEntity)
+    suspend fun getTaskById(id: Long): TaskEntity?
+    // 可加搜尋、篩選等方法
+}
+
+class TaskRepositoryImpl(private val taskDao: TaskDao) : TaskRepository {
+
+    override suspend fun getAllTasks(): List<TaskEntity> = taskDao.getAllTasks()
+
+    override suspend fun addTask(task: TaskEntity) {
+        taskDao.insertTask(task)
+    }
+
+    override suspend fun updateTask(task: TaskEntity) {
+        taskDao.updateTask(task)
+    }
+
+    override suspend fun deleteTask(task: TaskEntity) {
+        taskDao.deleteTask(task)
+    }
+
+    override suspend fun getTaskById(id: Long): TaskEntity? = taskDao.getTaskById(id)
+}

@@ -1,6 +1,7 @@
-package com.bianca.ai_assistant.viewModel
+package com.bianca.ai_assistant.viewModel.task
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,9 +15,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,9 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bianca.ai_assistant.infrastructure.TaskEntity
+import com.bianca.ai_assistant.infrastructure.alarm.ScheduleAlarmWithPermissionCheck
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.viewModel.dialog.TaskEditDialog
 
@@ -48,14 +51,42 @@ import com.bianca.ai_assistant.viewModel.dialog.TaskEditDialog
 @ExperimentalMaterial3Api
 @Composable
 fun TaskListScreenWithViewModel(viewModel: TaskViewModel) {
+    // 觀察 StateFlow
     val tasks by viewModel.tasks.collectAsState()
+
+    // 可以依需求新增 showDialog/editingTask 等 UI 狀態
+    var showDialog by remember { mutableStateOf(false) }
+    var editingTask by remember { mutableStateOf<TaskEntity?>(null) }
+
+    // 將 ViewModel 的操作方法傳給 stateless UI
     TaskListScreen(
         tasks = tasks,
-        onAddTask = { /* 打開新增 Dialog/畫面 */ },
-        onEditTask = { task -> viewModel.selectTask(task) },
-        onToggleTask = { task -> viewModel.toggleTask(task) },
-        onDeleteTask = { task -> viewModel.deleteTask(task) }
+        onAddTask = { task ->
+            viewModel.addTask(task)
+        },
+        onEditTask = { task ->
+            editingTask = task
+            showDialog = true
+        },
+        onToggleTask = { task ->
+            viewModel.toggleTask(task)
+        },
+        onDeleteTask = { task ->
+            viewModel.deleteTask(task)
+        }
     )
+
+    // 彈出 Dialog（可根據需要顯示新增/編輯Dialog）
+    if (showDialog) {
+        TaskEditDialog(
+            initialTask = editingTask,
+            onDismiss = { showDialog = false },
+            onConfirm = { updatedTask ->
+                viewModel.updateTask(updatedTask)
+                showDialog = false
+            }
+        )
+    }
 }
 
 @ExperimentalMaterial3Api
@@ -67,19 +98,26 @@ fun TaskListScreen(
     onToggleTask: (TaskEntity) -> Unit = {},
     onDeleteTask: (TaskEntity) -> Unit = {},
 ) {
-
     var showDialog by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var alarmInfo by remember { mutableStateOf<Triple<Long, Long, String>?>(null) } // (taskId, dueTime, title)
+
+    // 新增/編輯按鈕事件
+    val onDialogConfirm: (TaskEntity) -> Unit = { task ->
+        if (editingTask == null) onAddTask(task) else onEditTask(task)
+        // 判斷有無提醒時間
+        if (task.dueTime != null) {
+            alarmInfo = Triple(task.id, task.dueTime!!, task.title)
+        }
+        showDialog = false
+    }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("任務清單") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 editingTask = null
                 showDialog = true
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "新增")
-            }
+            }) { Icon(Icons.Default.Add, contentDescription = "新增") }
         }
     ) { innerPadding ->
         LazyColumn(contentPadding = innerPadding) {
@@ -92,17 +130,21 @@ fun TaskListScreen(
                 )
             }
         }
-
-        // 彈出 Dialog
         if (showDialog) {
             TaskEditDialog(
                 initialTask = editingTask,
                 onDismiss = { showDialog = false },
-                onConfirm = { task ->
-                    if (editingTask == null) onAddTask(task)
-                    else onEditTask(task)
-                    showDialog = false
-                }
+                onConfirm = onDialogConfirm
+            )
+        }
+        // 排提醒，觸發時自動消失
+        alarmInfo?.let { (taskId, dueTime, title) ->
+            ScheduleAlarmWithPermissionCheck(
+                taskId = taskId,
+                timeMillis = dueTime,
+                title = title,
+                desc = "",
+                onAlarmScheduled = { alarmInfo = null }
             )
         }
     }
@@ -126,11 +168,25 @@ fun TaskItemRow(
             checked = task.isDone,
             onCheckedChange = { onToggle() }
         )
-        Text(
-            text = task.title,
-            modifier = Modifier.weight(1f),
-            textDecoration = if (task.isDone) TextDecoration.LineThrough else null
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = task.title,
+                style = MaterialTheme.typography.titleMedium,
+                textDecoration = if (task.isDone) TextDecoration.LineThrough else null
+
+            )
+            if (!task.description.isNullOrBlank()) {
+                Text(
+                    text = task.description,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                    textDecoration = if (task.isDone) TextDecoration.LineThrough else null
+                )
+            }
+        }
         IconButton(onClick = { onDelete() }) {
             Icon(Icons.Default.Delete, contentDescription = "刪除")
         }

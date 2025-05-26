@@ -13,6 +13,10 @@ plugins {
     kotlin("kapt")
 }
 
+hilt {
+    enableAggregatingTask = false
+}
+
 android {
     namespace = "com.bianca.ai_assistant"
     compileSdk = 35

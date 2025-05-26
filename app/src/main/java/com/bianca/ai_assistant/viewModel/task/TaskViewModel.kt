@@ -1,8 +1,10 @@
-package com.bianca.ai_assistant.viewModel
+package com.bianca.ai_assistant.viewModel.task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bianca.ai_assistant.infrastructure.TaskEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,28 +23,23 @@ import kotlinx.coroutines.launch
  * selectTask：設定目前選取的任務（可用於彈出編輯視窗等場景）
  */
 
-class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+
+@HiltViewModel
+class TaskViewModel @Inject constructor(private val repository: TaskRepository) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<TaskEntity>>(emptyList())
     val tasks: StateFlow<List<TaskEntity>> = _tasks.asStateFlow()
 
-    private val _selectedTask = MutableStateFlow<TaskEntity?>(null)
-    val selectedTask: StateFlow<TaskEntity?> = _selectedTask.asStateFlow()
-
-    init {
-        loadTasks()
-    }
+    init { loadTasks() }
 
     fun loadTasks() {
-        viewModelScope.launch {
-            _tasks.value = repository.getAllTasks()
-        }
+        viewModelScope.launch { _tasks.value = repository.getAllTasks() }
     }
 
     fun addTask(task: TaskEntity) {
         viewModelScope.launch {
             repository.addTask(task)
-            loadTasks() // 重新載入，確保 UI 同步
+            loadTasks()
         }
     }
 
@@ -66,10 +63,6 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
             repository.updateTask(updatedTask)
             loadTasks()
         }
-    }
-
-    fun selectTask(task: TaskEntity?) {
-        _selectedTask.value = task
     }
 }
 

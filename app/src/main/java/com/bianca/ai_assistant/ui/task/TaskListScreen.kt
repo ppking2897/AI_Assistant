@@ -1,4 +1,4 @@
-package com.bianca.ai_assistant.viewModel.task
+package com.bianca.ai_assistant.ui.task
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,10 +45,12 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.bianca.ai_assistant.infrastructure.TaskEntity
 import com.bianca.ai_assistant.infrastructure.alarm.ScheduleAlarmWithPermissionCheck
+import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
+import com.bianca.ai_assistant.ui.dialog.TaskEditDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
-import com.bianca.ai_assistant.viewModel.dialog.TaskEditDialog
+import com.bianca.ai_assistant.viewModel.task.TaskFilter
+import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 
 /**
  * 📝 備註與延伸建議
@@ -63,7 +66,10 @@ import com.bianca.ai_assistant.viewModel.dialog.TaskEditDialog
 
 @ExperimentalMaterial3Api
 @Composable
-fun TaskListScreenWithViewModel(viewModel: TaskViewModel) {
+fun TaskListScreenWithViewModel(
+    viewModel: TaskViewModel,
+    onTaskClick: (TaskEntity) -> Unit,
+) {
     val tasks by viewModel.filteredTasks.collectAsState()
     val filter by viewModel.filter.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -82,6 +88,7 @@ fun TaskListScreenWithViewModel(viewModel: TaskViewModel) {
             editingTask = it
             showDialog = true
         },
+        onTaskClick = onTaskClick,  // 加這行！
         onToggleTask = { viewModel.toggleTask(it) },
         onDeleteTask = { viewModel.deleteTask(it) },
         showDialog = showDialog,
@@ -104,6 +111,7 @@ fun TaskListScreenStateless(
     onFilterChange: (TaskFilter) -> Unit,
     onAddTask: (TaskEntity) -> Unit,
     onEditTask: (TaskEntity) -> Unit,
+    onTaskClick: (TaskEntity) -> Unit,  // 新增這行
     onToggleTask: (TaskEntity) -> Unit,
     onDeleteTask: (TaskEntity) -> Unit,
     showDialog: Boolean,
@@ -137,7 +145,7 @@ fun TaskListScreenStateless(
                 })
             }) {
         OutlinedTextField(
-            shape = RoundedCornerShape(4.dp),
+            shape = RoundedCornerShape(15.dp),
             value = searchQuery,
             onValueChange = onSearchQueryChange,
             label = { Text("搜尋任務") },
@@ -147,7 +155,7 @@ fun TaskListScreenStateless(
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 8.dp),
 
-        )
+            )
         // 篩選切換
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             FilterChip(
@@ -174,6 +182,7 @@ fun TaskListScreenStateless(
 
         TaskListScreen(
             tasks = tasks,
+            onTaskClick = onTaskClick,
             onAddTask = onAddTask,
             onEditTask = onEditTask,
             onToggleTask = onToggleTask,
@@ -196,6 +205,7 @@ fun TaskListScreenStateless(
 fun TaskListScreen(
     tasks: List<TaskEntity>,
     onAddTask: (TaskEntity) -> Unit = {},
+    onTaskClick: (TaskEntity) -> Unit = {},
     onEditTask: (TaskEntity) -> Unit = {},
     onToggleTask: (TaskEntity) -> Unit = {},
     onDeleteTask: (TaskEntity) -> Unit = {},
@@ -228,7 +238,8 @@ fun TaskListScreen(
             items(tasks) { task ->
                 TaskItemRow(
                     task = task,
-                    onClick = { onEditTask(task) },
+                    onClick = { onTaskClick(task) },    // 點整行跳詳情
+                    onEdit = { onEditTask(task) },      // 點icon進編輯Dialog
                     onToggle = { onToggleTask(task) },
                     onDelete = { onDeleteTask(task) }
                 )
@@ -258,14 +269,15 @@ fun TaskListScreen(
 @Composable
 fun TaskItemRow(
     task: TaskEntity,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit = {},       // 點整行（詳情/跳頁）
+    onEdit: () -> Unit = {},        // 點 icon（編輯）
     onToggle: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onClick() }   // 點整行跳詳情
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -278,7 +290,6 @@ fun TaskItemRow(
                 text = task.title,
                 style = MaterialTheme.typography.titleMedium,
                 textDecoration = if (task.isDone) TextDecoration.LineThrough else null
-
             )
             if (!task.description.isNullOrBlank()) {
                 Text(
@@ -291,6 +302,9 @@ fun TaskItemRow(
                     textDecoration = if (task.isDone) TextDecoration.LineThrough else null
                 )
             }
+        }
+        IconButton(onClick = { onEdit() }) {
+            Icon(Icons.Default.Edit, contentDescription = "編輯")
         }
         IconButton(onClick = { onDelete() }) {
             Icon(Icons.Default.Delete, contentDescription = "刪除")
@@ -331,7 +345,8 @@ fun PreviewTaskListScreenStatelessNightMode() {
             showDialog = showDialog,
             editingTask = editingTask,
             onDismissDialog = { showDialog = false },
-            onConfirmDialog = { showDialog = false }
+            onConfirmDialog = { showDialog = false },
+            onTaskClick = {}
         )
     }
 
@@ -381,7 +396,8 @@ fun PreviewTaskListScreenStateless() {
             showDialog = showDialog,
             editingTask = editingTask,
             onDismissDialog = { showDialog = false },
-            onConfirmDialog = { showDialog = false }
+            onConfirmDialog = { showDialog = false },
+            onTaskClick = {}
         )
     }
 

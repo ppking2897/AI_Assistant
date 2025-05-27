@@ -2,7 +2,7 @@ package com.bianca.ai_assistant.viewModel.task
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bianca.ai_assistant.infrastructure.TaskEntity
+import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -107,5 +108,18 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
         _filter.value = filter
     }
 
+    fun getTaskByIdState(id: Long): StateFlow<TaskEntity?> {
+        return tasks
+            .map { list -> list.find { it.id == id } }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                null
+            )
+    }
+
+    fun getTaskById(id: Long): TaskEntity? {
+        return tasks.value.find { it.id == id }
+    }
 }
 

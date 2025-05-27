@@ -1,7 +1,7 @@
 package com.bianca.ai_assistant.viewModel.task
 
-import com.bianca.ai_assistant.infrastructure.TaskDao
-import com.bianca.ai_assistant.infrastructure.TaskEntity
+import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
+import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 
 interface TaskRepository {
     suspend fun getAllTasks(): List<TaskEntity>

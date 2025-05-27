@@ -1,4 +1,4 @@
-package com.bianca.ai_assistant.infrastructure
+package com.bianca.ai_assistant.infrastructure.room.task
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

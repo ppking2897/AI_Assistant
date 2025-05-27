@@ -8,7 +8,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import com.bianca.ai_assistant.viewModel.dialog.ExactAlarmPermissionDialog
+import com.bianca.ai_assistant.ui.dialog.ExactAlarmPermissionDialog
 
 @Composable
 fun ScheduleAlarmWithPermissionCheck(

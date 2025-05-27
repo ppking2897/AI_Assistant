@@ -10,8 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bianca.ai_assistant.ui.bottomNavigation.MainApp
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
-import com.bianca.ai_assistant.viewModel.task.TaskListScreenWithViewModel
+import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,7 +25,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             AI_AssistantTheme {
                 val taskViewModel: TaskViewModel = hiltViewModel()
-                TaskListScreenWithViewModel(taskViewModel)
+//                TaskListScreenWithViewModel(taskViewModel)
+
+                val articleViewModel: ArticleViewModel = hiltViewModel()
+                MainApp(taskViewModel, articleViewModel)
             }
         }
     }

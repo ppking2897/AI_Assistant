@@ -1,8 +1,17 @@
 package com.bianca.ai_assistant.ui.bottomNavigation
 
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -38,24 +47,56 @@ fun MainApp(
         currentDestination?.route?.startsWith(screen.route) == true
     } ?: MainScreen.Home
 
+    val mainTabs = MainScreen.all.map { it.route }
+    val currentRoute = currentBackStackEntry?.destination?.route
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                MainScreen.all.forEach { screen ->
-                    NavigationBarItem(
-                        selected = currentScreen.route == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            if (currentRoute in mainTabs) {
+                NavigationBar {
+                    MainScreen.all.forEach { screen ->
+                        NavigationBarItem(
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = { /* 你的icon放這裡 */ },
-                        label = { Text(screen.title) }
-                    )
+                            },
+                            icon = {
+                                when (screen) {
+                                    MainScreen.Home -> Icon(
+                                        Icons.Default.Home,
+                                        contentDescription = "首頁"
+                                    )
+
+                                    MainScreen.Tasks -> Icon(
+                                        Icons.Default.Checklist,
+                                        contentDescription = "任務"
+                                    )
+
+                                    MainScreen.Articles -> Icon(
+                                        Icons.Default.Description,
+                                        contentDescription = "記事"
+                                    )
+
+                                    MainScreen.AI -> Icon(
+                                        Icons.Default.Android,
+                                        contentDescription = "AI"
+                                    )
+
+                                    MainScreen.Profile -> Icon(
+                                        Icons.Default.Person,
+                                        contentDescription = "個人"
+                                    )
+                                }
+                            },
+                            label = { Text(screen.title) }
+                        )
+                    }
                 }
             }
         }
@@ -63,7 +104,10 @@ fun MainApp(
         NavHost(
             navController = navController,
             startDestination = MainScreen.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             // 首頁
             composable(MainScreen.Home.route) {

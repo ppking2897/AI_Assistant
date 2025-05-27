@@ -2,8 +2,10 @@ package com.bianca.ai_assistant.ui.article
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -137,6 +140,8 @@ fun ArticleListScreen(
     tasks: List<TaskEntity>,
 ) {
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize(),
         topBar = { TopAppBar(title = { Text("記事清單") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddArticle) {
@@ -144,7 +149,10 @@ fun ArticleListScreen(
             }
         }
     ) { padding ->
-        LazyColumn(contentPadding = padding) {
+        LazyColumn(
+            contentPadding = padding,
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+        ) {
             items(articles) { article ->
                 ArticleListItem(
                     article = article,
@@ -179,12 +187,23 @@ fun ArticleListItem(
         Row(
             Modifier.padding(12.dp)
         ) {
-            Column(Modifier.weight(1f)) {
-                Text(article.title, style = MaterialTheme.typography.titleMedium)
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Text(
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    text = article.title,
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Text(
                     text = article.content.take(40),
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (relatedTask != null) {
                     Text(

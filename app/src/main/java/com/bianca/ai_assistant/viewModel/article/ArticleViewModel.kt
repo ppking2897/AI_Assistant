@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -19,8 +22,8 @@ class ArticleViewModel @Inject constructor(
     var articles by mutableStateOf<List<ArticleEntity>>(emptyList())
         private set
 
-    var article by mutableStateOf<ArticleEntity?>(null)
-        private set
+    private val _article = MutableStateFlow<ArticleEntity?>(null)
+    val article: StateFlow<ArticleEntity?> = _article.asStateFlow()
 
 
     var articlesByTask by mutableStateOf<List<ArticleEntity>>(emptyList())
@@ -40,7 +43,7 @@ class ArticleViewModel @Inject constructor(
 
     fun loadArticleById(id: Long) {
         viewModelScope.launch {
-            article = articleRepository.getArticleById(id)
+            _article.value = articleRepository.getArticleById(id)
         }
     }
 
@@ -69,7 +72,5 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
-    fun clearArticle() {
-        article = null
-    }
+    fun clearArticle() { _article.value = null }
 }

@@ -1,12 +1,20 @@
 package com.bianca.ai_assistant.ui.article
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +24,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
@@ -39,7 +51,7 @@ fun ArticleDetailScreenWithViewModel(
         viewModel.loadArticleById(articleId)
     }
 
-    val article = viewModel.article
+    val article = viewModel.article.collectAsState().value
 
     if (article != null) {
         val relatedTask = article.taskId?.let { getTaskById(it) }
@@ -68,28 +80,71 @@ fun ArticleDetailScreen(
                 title = { Text("記事詳情") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "返回")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
                     }
                 }
             )
+        },
+        bottomBar = {
+            Column(
+                Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
+            ) {
+
+                Text(
+                    "建立於 ${formatDateTime(article.createdAt)}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            end =
+                                if (relatedTask != null && onTaskClick != null)
+                                    10.dp
+                                else
+                                    10.dp,
+                            bottom = if (relatedTask != null && onTaskClick != null)
+                                0.dp
+                            else
+                                14.dp
+                        ),
+                    textAlign = TextAlign.Start
+                )
+
+                if (relatedTask != null && onTaskClick != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(onClick = onTaskClick) {
+                        Text("查看關聯任務：${relatedTask.title}")
+                    }
+                }
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(start = 16.dp, end = 16.dp)
         ) {
-            Text(article.title, style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(article.content, style = MaterialTheme.typography.bodyLarge)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("建立於 ${formatDateTime(article.createdAt)}")
-            if (relatedTask != null && onTaskClick != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(onClick = onTaskClick) {
-                    Text("查看關聯任務：${relatedTask.title}")
-                }
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                Text(
+                    modifier = Modifier.padding(start = 12.dp),
+                    text = article.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
+                )
             }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Column(
+                modifier = Modifier
+                    .padding(start = 4.dp, end = 4.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(article.content, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
         }
     }
 }
@@ -101,8 +156,42 @@ fun ArticleDetailScreen(
 fun ArticleDetailScreenPreview() {
     val article = ArticleEntity(
         id = 1,
-        title = "專案進度紀錄",
-        content = "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。",
+        title = "專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄專案進度紀錄",
+        content =
+            "我是開頭" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "今天完成了 Room + Compose 詳情頁的 UI 開發與測試。" +
+                    "我是結尾",
         createdAt = System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis(),
         taskId = 10L

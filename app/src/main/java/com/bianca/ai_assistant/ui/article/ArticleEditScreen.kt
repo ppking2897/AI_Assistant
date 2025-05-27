@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,8 @@ import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -44,16 +47,29 @@ fun ArticleEditScreenWithViewModel(
     onSaveSuccess: () -> Unit,
     onCancel: () -> Unit
 ) {
-    // 1. 載入單筆資料（僅編輯模式時）
-    LaunchedEffect(articleId) {
-        if (articleId != null) {
+
+    var article : ArticleEntity? by remember {
+        mutableStateOf(null)
+    }
+    LaunchedEffect(Unit) {
+        if (articleId == null){
+            viewModel.clearArticle()
+        }else{
             viewModel.loadArticleById(articleId)
-        } else {
-            viewModel.clearArticle()// 清空，避免舊資料殘留
+        }
+
+        viewModel.article.collectLatest {
+            article = it
         }
     }
 
-    val article = viewModel.article
+//    LaunchedEffect(articleId) {
+//        if (articleId != null) {
+//            viewModel.loadArticleById(articleId)
+//        } else {
+//            viewModel.clearArticle()
+//        }
+//    }
 
     // 假設 article 為 null 則為新增，否則為編輯
     ArticleEditScreen(
@@ -72,7 +88,7 @@ fun ArticleEditScreenWithViewModel(
                 )
             } else {
                 viewModel.updateArticle(
-                    article.copy(
+                    article!!.copy(
                         title = title,
                         content = content,
                         taskId = taskId
@@ -94,9 +110,16 @@ fun ArticleEditScreen(
     onSave: (title: String, content: String, taskId: Long?) -> Unit,
     onCancel: () -> Unit
 ) {
-    var title by remember { mutableStateOf(article?.title ?: "") }
-    var content by remember { mutableStateOf(article?.content ?: "") }
-    var selectedTaskId by remember { mutableStateOf(article?.taskId ?: initialTaskId) }
+    var title by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+    var selectedTaskId by remember { mutableStateOf(initialTaskId) }
+
+    // **重點：每當 article 變動（也就是 ViewModel 載入成功），就同步到 state**
+    LaunchedEffect(article) {
+        title = article?.title ?: ""
+        content = article?.content ?: ""
+        selectedTaskId = article?.taskId ?: initialTaskId
+    }
 
     Scaffold(
         topBar = {

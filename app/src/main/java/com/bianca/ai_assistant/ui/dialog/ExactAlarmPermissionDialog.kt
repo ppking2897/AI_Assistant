@@ -1,4 +1,4 @@
-package com.bianca.ai_assistant.viewModel.dialog
+package com.bianca.ai_assistant.ui.dialog
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button

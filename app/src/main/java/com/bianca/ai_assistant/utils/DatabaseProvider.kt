@@ -2,7 +2,7 @@ package com.bianca.ai_assistant.utils
 
 import android.content.Context
 import androidx.room.Room
-import com.bianca.ai_assistant.infrastructure.AppDatabase
+import com.bianca.ai_assistant.infrastructure.room.AppDatabase
 
 object DatabaseProvider {
     private var INSTANCE: AppDatabase? = null

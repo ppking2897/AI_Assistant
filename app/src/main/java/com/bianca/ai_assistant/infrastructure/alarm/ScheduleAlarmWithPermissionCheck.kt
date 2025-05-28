@@ -18,51 +18,23 @@ fun ScheduleAlarmWithPermissionCheck(
     desc: String,
     onAlarmScheduled: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     var showPermissionDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
-    // 排鬧鐘的邏輯
-    fun tryScheduleAlarm() {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        try {
-            val intent = Intent(context, TaskAlarmReceiver::class.java).apply {
-                putExtra("title", title)
-                putExtra("desc", desc)
-                putExtra("taskId", taskId)
-            }
-            val pendingIntent = android.app.PendingIntent.getBroadcast(
-                context, taskId.toInt(), intent,
-                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-            )
-
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent
-            )
-            onAlarmScheduled()
-        } catch (e: SecurityException) {
-            // 權限被關掉，彈 Dialog
-            showPermissionDialog = true
-        }
+    // 只做「單次排程」功能的 SideEffect
+    LaunchedEffect(taskId, timeMillis, title, desc) {
+        checkAndScheduleAlarm(
+            context = context,
+            taskId = taskId,
+            timeMillis = timeMillis,
+            title = title,
+            desc = desc,
+            onAlarmScheduled = onAlarmScheduled,
+            onNeedPermission = { showPermissionDialog = true }
+        )
     }
 
-    // 檢查權限並決定要不要排鬧鐘
-    fun checkAndScheduleAlarm() {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmManager.canScheduleExactAlarms()) {
-                showPermissionDialog = true
-            } else {
-                tryScheduleAlarm()
-            }
-        } else {
-            tryScheduleAlarm()
-        }
-    }
-
-    // 你在新增/編輯任務時呼叫這個方法（ex: 按下「儲存」時）
-    // checkAndScheduleAlarm()
-
-    // 彈窗：引導用戶前往設定頁
+    // 權限 Dialog
     ExactAlarmPermissionDialog(
         show = showPermissionDialog,
         onDismiss = { showPermissionDialog = false },
@@ -77,4 +49,54 @@ fun ScheduleAlarmWithPermissionCheck(
             }
         }
     )
+}
+
+fun checkAndScheduleAlarm(
+    context: Context,
+    taskId: Long,
+    timeMillis: Long,
+    title: String,
+    desc: String,
+    onAlarmScheduled: () -> Unit,
+    onNeedPermission: () -> Unit
+) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (!alarmManager.canScheduleExactAlarms()) {
+            onNeedPermission()
+        } else {
+            tryScheduleAlarm(context, taskId, timeMillis, title, desc, onAlarmScheduled)
+        }
+    } else {
+        tryScheduleAlarm(context, taskId, timeMillis, title, desc, onAlarmScheduled)
+    }
+}
+
+fun tryScheduleAlarm(
+    context: Context,
+    taskId: Long,
+    timeMillis: Long,
+    title: String,
+    desc: String,
+    onAlarmScheduled: () -> Unit
+) {
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    try {
+        val intent = Intent(context, TaskAlarmReceiver::class.java).apply {
+            putExtra("title", title)
+            putExtra("desc", desc)
+            putExtra("taskId", taskId)
+        }
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            context, taskId.toInt(), intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP, timeMillis, pendingIntent
+        )
+        onAlarmScheduled()
+    } catch (e: SecurityException) {
+        // 權限被關掉
+        // 通常不會到這，因為已先檢查權限
+    }
 }

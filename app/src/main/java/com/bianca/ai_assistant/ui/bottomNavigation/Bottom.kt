@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -36,11 +37,11 @@ import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(
+    navController: NavHostController,
     taskViewModel: TaskViewModel,
     articleViewModel: ArticleViewModel,
     // ... 其他 ViewModel
 ) {
-    val navController = rememberNavController()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
     val currentScreen = MainScreen.all.find { screen ->
@@ -139,7 +140,7 @@ fun MainApp(
                             navController.navigate("articleDetail/${article.id}")
                         },
                         onAddArticle = {
-                            navController.navigate("articleAdd?taskId=${task!!.id}")
+                            navController.navigate("articleEdit?taskId=${task!!.id}")
                         }
                     )
                 } else {

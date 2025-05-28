@@ -71,35 +71,64 @@ fun TaskListScreenWithViewModel(
     viewModel: TaskViewModel,
     onTaskClick: (TaskEntity) -> Unit,
 ) {
+
+
+    data class AlarmRequest(
+        val taskId: Long,
+        val dueTime: Long,
+        val title: String,
+        val requestKey: Long = System.currentTimeMillis() // 確保每次都是新物件
+    )
+
     val tasks by viewModel.filteredTasks.collectAsState()
     val filter by viewModel.filter.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var editingTask by remember { mutableStateOf<TaskEntity?>(null) }
+    var alarmInfo by remember { mutableStateOf<AlarmRequest?>(null) }
 
+    // 統一所有 Dialog、提醒狀態
     TaskListScreenStateless(
         tasks = tasks,
         searchQuery = searchQuery,
         onSearchQueryChange = { viewModel.setSearchQuery(it) },
         filter = filter,
         onFilterChange = { viewModel.setFilter(it) },
-        onAddTask = { viewModel.addTask(it) },
+        onAddTask = {
+            editingTask = null
+            showDialog = true
+        },
         onEditTask = {
             editingTask = it
             showDialog = true
         },
-        onTaskClick = onTaskClick,  // 加這行！
+        onTaskClick = onTaskClick,
         onToggleTask = { viewModel.toggleTask(it) },
         onDeleteTask = { viewModel.deleteTask(it) },
         showDialog = showDialog,
         editingTask = editingTask,
         onDismissDialog = { showDialog = false },
-        onConfirmDialog = {
-            viewModel.updateTask(it)
+        onConfirmDialog = { task ->
+            val isNew = editingTask == null
+            if (isNew) viewModel.addTask(task) else viewModel.updateTask(task)
+            if (task.dueTime != null && task.dueTime!! > System.currentTimeMillis()) {
+                alarmInfo = AlarmRequest(task.id, task.dueTime, task.title, System.currentTimeMillis())
+            }
             showDialog = false
         }
     )
+
+    // 排定提醒
+    alarmInfo?.let { req ->
+        ScheduleAlarmWithPermissionCheck(
+            taskId = req.taskId,
+            timeMillis = req.dueTime,
+            title = req.title,
+            desc = "",
+            onAlarmScheduled = { alarmInfo = null }
+        )
+    }
 }
 
 @ExperimentalMaterial3Api
@@ -110,7 +139,7 @@ fun TaskListScreenStateless(
     onSearchQueryChange: (String) -> Unit,
     filter: TaskFilter,
     onFilterChange: (TaskFilter) -> Unit,
-    onAddTask: (TaskEntity) -> Unit,
+    onAddTask: () -> Unit,
     onEditTask: (TaskEntity) -> Unit,
     onTaskClick: (TaskEntity) -> Unit,  // 新增這行
     onToggleTask: (TaskEntity) -> Unit,
@@ -123,12 +152,6 @@ fun TaskListScreenStateless(
 
     val focusManager = LocalFocusManager.current
 
-    //containerColor → 一般 chip 背景色（未選中時）
-    //labelColor → 一般 chip 文字色
-    //selectedContainerColor → 被選中時 chip 背景色
-    //selectedLabelColor → 被選中時 chip 文字色
-    //iconColor, selectedIconColor → 有圖示才會顯示
-    //disabledXXX → 不可用狀態才會用到
     val chipColors = FilterChipDefaults.filterChipColors().copy(
         containerColor = Color(0xFFF5F5F5),   // 極淡灰
         labelColor = Color(0xFF607D8B),       // 藏青灰
@@ -155,8 +178,7 @@ fun TaskListScreenStateless(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 8.dp),
-
-            )
+        )
         // 篩選切換
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             FilterChip(
@@ -191,6 +213,7 @@ fun TaskListScreenStateless(
         )
     }
 
+    // 只依外層狀態顯示 Dialog
     if (showDialog) {
         TaskEditDialog(
             initialTask = editingTask,
@@ -205,64 +228,29 @@ fun TaskListScreenStateless(
 @Composable
 fun TaskListScreen(
     tasks: List<TaskEntity>,
-    onAddTask: (TaskEntity) -> Unit = {},
+    onAddTask: () -> Unit = {},
     onTaskClick: (TaskEntity) -> Unit = {},
     onEditTask: (TaskEntity) -> Unit = {},
     onToggleTask: (TaskEntity) -> Unit = {},
-    onDeleteTask: (TaskEntity) -> Unit = {},
-    searchQueryAction: (String) -> Unit = {},
+    onDeleteTask: (TaskEntity) -> Unit = {}
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-    var editingTask by remember { mutableStateOf<TaskEntity?>(null) }
-    var alarmInfo by remember { mutableStateOf<Triple<Long, Long, String>?>(null) } // (taskId, dueTime, title)
-
-    // 新增/編輯按鈕事件
-    val onDialogConfirm: (TaskEntity) -> Unit = { task ->
-        if (editingTask == null) onAddTask(task) else onEditTask(task)
-        // 判斷有無提醒時間
-        if (task.dueTime != null) {
-            alarmInfo = Triple(task.id, task.dueTime!!, task.title)
-        }
-        showDialog = false
-    }
-
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                editingTask = null
-                showDialog = true
-            }) { Icon(Icons.Default.Add, contentDescription = "新增") }
+            FloatingActionButton(onClick = { onAddTask() }) {
+                Icon(Icons.Default.Add, contentDescription = "新增")
+            }
         }
     ) { innerPadding ->
-
         LazyColumn(Modifier.padding(innerPadding)) {
             items(tasks) { task ->
                 TaskItemRow(
                     task = task,
-                    onClick = { onTaskClick(task) },    // 點整行跳詳情
-                    onEdit = { onEditTask(task) },      // 點icon進編輯Dialog
+                    onClick = { onTaskClick(task) },
+                    onEdit = { onEditTask(task) },
                     onToggle = { onToggleTask(task) },
                     onDelete = { onDeleteTask(task) }
                 )
             }
-        }
-
-        if (showDialog) {
-            TaskEditDialog(
-                initialTask = editingTask,
-                onDismiss = { showDialog = false },
-                onConfirm = onDialogConfirm
-            )
-        }
-        // 排提醒，觸發時自動消失
-        alarmInfo?.let { (taskId, dueTime, title) ->
-            ScheduleAlarmWithPermissionCheck(
-                taskId = taskId,
-                timeMillis = dueTime,
-                title = title,
-                desc = "",
-                onAlarmScheduled = { alarmInfo = null }
-            )
         }
     }
 }
@@ -275,6 +263,12 @@ fun TaskItemRow(
     onToggle: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
+
+    fun formatTimeShort(millis: Long): String {
+        val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+        return sdf.format(java.util.Date(millis))
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -301,6 +295,14 @@ fun TaskItemRow(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 2.dp),
                     textDecoration = if (task.isDone) TextDecoration.LineThrough else null
+                )
+            }
+
+            task.dueTime?.let {
+                Text(
+                    text = "提醒時間: ${formatTimeShort(it)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (it < System.currentTimeMillis()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                 )
             }
         }

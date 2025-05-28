@@ -13,6 +13,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -53,8 +54,8 @@ fun TaskEditDialog(
 
     if (showDatePicker.value) {
         DatePickerDialog(
-            context,
-            { _, year, month, day ->
+            /* context = */ context,
+            /* listener = */ { _, year, month, day ->
                 // 選到日期後...
                 calendar.set(Calendar.YEAR, year)
                 calendar.set(Calendar.MONTH, month)
@@ -62,9 +63,9 @@ fun TaskEditDialog(
                 showDatePicker.value = false
                 showTimePicker.value = true // 進入下一步選時間
             },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
+            /* year = */ calendar.get(Calendar.YEAR),
+            /* month = */ calendar.get(Calendar.MONTH),
+            /* dayOfMonth = */ calendar.get(Calendar.DAY_OF_MONTH)
         ).apply {
             // 這裡加 onCancelListener
             setOnCancelListener {
@@ -132,6 +133,15 @@ fun TaskEditDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = { showDatePicker.value = true }) {
                     Text("設定提醒")
+                }
+
+                if (dueTime != null && dueTime!! < System.currentTimeMillis()) {
+                    Text(
+                        text = "提醒時間已過，請選擇未來的時間！",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         },

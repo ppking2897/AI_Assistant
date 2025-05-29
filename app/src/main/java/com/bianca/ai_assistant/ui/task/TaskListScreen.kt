@@ -50,6 +50,7 @@ import com.bianca.ai_assistant.infrastructure.alarm.ScheduleAlarmWithPermissionC
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.dialog.TaskEditDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.utils.formatTimeShort
 import com.bianca.ai_assistant.viewModel.task.TaskFilter
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 
@@ -263,11 +264,6 @@ fun TaskItemRow(
     onToggle: () -> Unit = {},
     onDelete: () -> Unit = {},
 ) {
-
-    fun formatTimeShort(millis: Long): String {
-        val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-        return sdf.format(java.util.Date(millis))
-    }
 
     Row(
         modifier = Modifier

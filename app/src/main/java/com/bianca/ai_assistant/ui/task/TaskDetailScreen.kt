@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.utils.formatDueTimeWithDateOption
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 
 
@@ -92,6 +93,17 @@ fun TaskDetailScreen(
             )
 
             Spacer(modifier = Modifier.height(60.dp))
+
+            task.dueTime?.let {
+                Text(
+                    text = "提醒時間: ${formatDueTimeWithDateOption(it)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (it < System.currentTimeMillis()) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(text = "相關記事", style = MaterialTheme.typography.titleMedium)
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -144,7 +156,8 @@ fun TaskDetailScreenPreview() {
             id = 1,
             title = "專案規劃與開發",
             description = "規劃新功能並分配人員。",
-            isDone = false
+            isDone = false,
+            dueTime = 55555555555L, // 假設的到期時間
         )
 
         val articles = listOf(

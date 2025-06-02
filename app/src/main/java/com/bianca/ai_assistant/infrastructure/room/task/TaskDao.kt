@@ -1,6 +1,7 @@
 package com.bianca.ai_assistant.infrastructure.room.task
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
@@ -22,4 +23,7 @@ interface TaskDao {
     // 進階功能範例
     @Query("SELECT * FROM tasks WHERE isDone = :done")
     suspend fun getTasksByStatus(done: Boolean): List<TaskEntity>
+
+    @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
+    fun getAllTasksFlow(): Flow<List<TaskEntity>>
 }

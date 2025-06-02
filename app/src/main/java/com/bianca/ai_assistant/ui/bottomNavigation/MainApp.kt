@@ -25,13 +25,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.bianca.ai_assistant.ui.article.ArticleDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleEditScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleListScreenWithViewModel
+import com.bianca.ai_assistant.ui.home.HomeScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskListScreenWithViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
+import com.bianca.ai_assistant.viewModel.home.HomeViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +41,7 @@ fun MainApp(
     navController: NavHostController,
     taskViewModel: TaskViewModel,
     articleViewModel: ArticleViewModel,
+    homeViewModel: HomeViewModel,
     // ... 其他 ViewModel
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -112,7 +114,11 @@ fun MainApp(
         ) {
             // 首頁
             composable(MainScreen.Home.route) {
-//                HomeScreen()
+                HomeScreenWithViewModel(
+                    homeViewModel = homeViewModel,
+                    onAddTask = {},
+                    onAddNote = {},
+                    onAskAI = {})
             }
 
             // 任務清單分頁

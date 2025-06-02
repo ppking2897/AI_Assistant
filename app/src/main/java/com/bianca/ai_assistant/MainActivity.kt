@@ -20,6 +20,7 @@ import com.bianca.ai_assistant.ui.bottomNavigation.MainApp
 import com.bianca.ai_assistant.ui.bottomNavigation.MainScreen
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
+import com.bianca.ai_assistant.viewModel.home.HomeViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -60,9 +61,9 @@ class MainActivity : ComponentActivity() {
 
                 val taskViewModel: TaskViewModel = hiltViewModel()
 //                TaskListScreenWithViewModel(taskViewModel)
-
                 val articleViewModel: ArticleViewModel = hiltViewModel()
-                MainApp(navController , taskViewModel, articleViewModel)
+                val homeViewModel: HomeViewModel = hiltViewModel()
+                MainApp(navController, taskViewModel, articleViewModel, homeViewModel)
             }
         }
     }

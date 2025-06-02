@@ -27,4 +27,7 @@ interface ArticleDao {
 
     @Query("SELECT * FROM articles WHERE id = :id LIMIT 1")
     suspend fun getArticleById(id: Long): ArticleEntity?
+
+    @Query("SELECT * FROM articles ORDER BY createdAt DESC")
+    fun getAllArticlesFlow(): Flow<List<ArticleEntity>>
 }

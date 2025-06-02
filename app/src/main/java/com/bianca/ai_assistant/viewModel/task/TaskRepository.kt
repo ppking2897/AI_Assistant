@@ -2,6 +2,7 @@ package com.bianca.ai_assistant.viewModel.task
 
 import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
+import kotlinx.coroutines.flow.Flow
 
 interface TaskRepository {
     suspend fun getAllTasks(): List<TaskEntity>
@@ -9,6 +10,7 @@ interface TaskRepository {
     suspend fun updateTask(task: TaskEntity)
     suspend fun deleteTask(task: TaskEntity)
     suspend fun getTaskById(id: Long): TaskEntity?
+    fun getAllTasksFlow(): Flow<List<TaskEntity>>
     // 可加搜尋、篩選等方法
 }
 
@@ -29,4 +31,6 @@ class TaskRepositoryImpl(private val taskDao: TaskDao) : TaskRepository {
     }
 
     override suspend fun getTaskById(id: Long): TaskEntity? = taskDao.getTaskById(id)
+
+    override fun getAllTasksFlow(): Flow<List<TaskEntity>> = taskDao.getAllTasksFlow()
 }

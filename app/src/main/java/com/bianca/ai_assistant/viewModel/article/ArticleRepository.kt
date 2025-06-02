@@ -13,10 +13,11 @@ interface ArticleRepository {
     suspend fun updateArticle(article: ArticleEntity)
     suspend fun deleteArticle(article: ArticleEntity)
     suspend fun getArticleById(id: Long): ArticleEntity?
+    fun getAllArticlesFlow(): Flow<List<ArticleEntity>>
 }
 
 class ArticleRepositoryImpl @Inject constructor(
-    private val articleDao: ArticleDao
+    private val articleDao: ArticleDao,
 ) : ArticleRepository {
 
     override suspend fun getAllArticles(): List<ArticleEntity> =
@@ -36,5 +37,7 @@ class ArticleRepositoryImpl @Inject constructor(
 
     override suspend fun getArticleById(id: Long): ArticleEntity? =
         articleDao.getArticleById(id)
+
+    override fun getAllArticlesFlow(): Flow<List<ArticleEntity>> = articleDao.getAllArticlesFlow()
 
 }

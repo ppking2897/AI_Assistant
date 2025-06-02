@@ -9,8 +9,10 @@ import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -28,6 +30,10 @@ class ArticleViewModel @Inject constructor(
 
     var articlesByTask by mutableStateOf<List<ArticleEntity>>(emptyList())
         private set
+
+    val articlesFlow: StateFlow<List<ArticleEntity>> =
+        articleRepository.getAllArticlesFlow()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadArticlesByTask(taskId: Long) {
         viewModelScope.launch {

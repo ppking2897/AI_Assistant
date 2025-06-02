@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +35,6 @@ import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -47,16 +45,16 @@ fun ArticleEditScreenWithViewModel(
     initialTaskId: Long? = null,
     allTasks: List<TaskEntity>,
     onSaveSuccess: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
 
-    var article : ArticleEntity? by remember {
+    var article: ArticleEntity? by remember {
         mutableStateOf(null)
     }
     LaunchedEffect(Unit) {
-        if (articleId == null){
+        if (articleId == null) {
             viewModel.clearArticle()
-        }else{
+        } else {
             viewModel.loadArticleById(articleId)
         }
 
@@ -100,7 +98,6 @@ fun ArticleEditScreenWithViewModel(
                     onSaveSuccess()
                 }
             }
-            onSaveSuccess()
         },
         onCancel = onCancel
     )
@@ -113,7 +110,7 @@ fun ArticleEditScreen(
     allTasks: List<TaskEntity>,
     initialTaskId: Long? = null, // 預設關聯任務（通常任務詳情頁點進來時給）
     onSave: (title: String, content: String, taskId: Long?) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }

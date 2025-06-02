@@ -4,13 +4,17 @@ import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -41,6 +45,7 @@ import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.dialog.ArticleEditDialog
 import com.bianca.ai_assistant.ui.dialog.ConfirmDeleteDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.utils.ScrollBottomNavigation
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
@@ -143,6 +148,10 @@ fun ArticleListScreen(
     onDeleteArticle: (ArticleEntity) -> Unit,
     tasks: List<TaskEntity>,
 ) {
+
+    val listState = rememberLazyListState()
+
+    ScrollBottomNavigation(listState)
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -154,9 +163,11 @@ fun ArticleListScreen(
         }
     ) { padding ->
         LazyColumn(
-            contentPadding = padding,
+            state = listState,
+            contentPadding = PaddingValues(bottom =16.dp),
             modifier = Modifier
                 .padding(start = 8.dp, end = 8.dp)
+                .padding(padding)
                 .navigationBarsPadding()
         ) {
             items(articles) { article ->
@@ -168,6 +179,10 @@ fun ArticleListScreen(
                     onEdit = { onEditArticle(article) },
                     onDelete = { onDeleteArticle(article) }
                 )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(72.dp))
             }
         }
     }

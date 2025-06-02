@@ -84,6 +84,7 @@ class TaskViewModel @Inject constructor(private val repository: ITaskRepository)
             val id = repository.insertTask(task)
             val saved = task.copy(id = id)
             onInserted(saved)
+            loadTasks()
         }
     }
 

@@ -3,16 +3,22 @@ package com.bianca.ai_assistant.ui.task
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,15 +37,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,10 +59,12 @@ import com.bianca.ai_assistant.infrastructure.alarm.ScheduleAlarmWithPermissionC
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.dialog.TaskEditDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.utils.ScrollBottomNavigation
 import com.bianca.ai_assistant.utils.formatTimeShort
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskFilter
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
+import kotlinx.coroutines.launch
 
 /**
  * 📝 備註與延伸建議
@@ -122,7 +134,7 @@ fun TaskListScreenWithViewModel(
         onConfirmDialog = { task ->
             val isNew = editingTask == null
             if (isNew) {
-                viewModel.addTask(task){
+                viewModel.addTask(task) {
                     recentActivityViewModel.recordTaskEvent("新增", task)
                 }
 
@@ -169,7 +181,12 @@ fun TaskListScreenStateless(
     onConfirmDialog: (TaskEntity) -> Unit,
 ) {
 
+
     val focusManager = LocalFocusManager.current
+
+    val listState = rememberLazyListState()
+
+    ScrollBottomNavigation(listState)
 
     val chipColors = FilterChipDefaults.filterChipColors().copy(
         containerColor = Color(0xFFF5F5F5),   // 極淡灰
@@ -228,7 +245,8 @@ fun TaskListScreenStateless(
             onAddTask = onAddTask,
             onEditTask = onEditTask,
             onToggleTask = onToggleTask,
-            onDeleteTask = onDeleteTask
+            onDeleteTask = onDeleteTask,
+            lazyListState = listState,
         )
     }
 
@@ -252,6 +270,7 @@ fun TaskListScreen(
     onEditTask: (TaskEntity) -> Unit = {},
     onToggleTask: (TaskEntity) -> Unit = {},
     onDeleteTask: (TaskEntity) -> Unit = {},
+    lazyListState: LazyListState,
 ) {
     Scaffold(
         floatingActionButton = {
@@ -260,7 +279,12 @@ fun TaskListScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(Modifier.padding(innerPadding)) {
+        LazyColumn(
+            modifier =
+                Modifier.padding(innerPadding),
+            state = lazyListState,
+            contentPadding = PaddingValues(bottom =16.dp)
+        ) {
             items(tasks) { task ->
                 TaskItemRow(
                     task = task,
@@ -269,6 +293,10 @@ fun TaskListScreen(
                     onToggle = { onToggleTask(task) },
                     onDelete = { onDeleteTask(task) }
                 )
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(72.dp))
             }
         }
     }

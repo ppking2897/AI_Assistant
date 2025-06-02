@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class ArticleViewModel @Inject constructor(
-    private val articleRepository: ArticleRepository,
+    private val articleRepository: IArticleRepository,
 ) : ViewModel() {
 
 
@@ -62,11 +62,26 @@ class ArticleViewModel @Inject constructor(
         }
     }
 
+    fun insertArticle(article: ArticleEntity, onInserted: (ArticleEntity) -> Unit) {
+        viewModelScope.launch {
+            val id = articleRepository.insertArticle(article)
+            val saved = article.copy(id = id)
+            onInserted(saved)
+        }
+    }
+
     fun updateArticle(article: ArticleEntity, onFinish: (() -> Unit)? = null) {
         viewModelScope.launch {
             articleRepository.updateArticle(article)
             onFinish?.invoke()
             loadAllArticles()
+        }
+    }
+
+    fun updateArticle(article: ArticleEntity, onUpdated: (ArticleEntity) -> Unit) {
+        viewModelScope.launch {
+            articleRepository.updateArticle(article)
+            onUpdated(article)
         }
     }
 

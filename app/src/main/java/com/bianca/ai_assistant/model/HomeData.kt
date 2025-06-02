@@ -1,12 +1,13 @@
 package com.bianca.ai_assistant.model
 
 import com.bianca.ai_assistant.R
+import com.bianca.ai_assistant.infrastructure.room.RecentActivityEntity
 
 data class HomeData(
     val weather: WeatherInfo,
     val events: List<EventInfo>,
     val aiSuggestion: String,
-    val recentActivities: List<String>
+    val recentActivities: List<RecentActivityDisplay>
 ) {
     companion object {
         fun mock() = HomeData(
@@ -33,4 +34,9 @@ data class WeatherInfo(
 data class EventInfo(
     val time: String,
     val title: String
+)
+
+data class RecentActivityDisplay(
+    val activity: RecentActivityEntity,
+    val exist: Boolean
 )

@@ -26,4 +26,5 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
     fun getAllTasksFlow(): Flow<List<TaskEntity>>
+
 }

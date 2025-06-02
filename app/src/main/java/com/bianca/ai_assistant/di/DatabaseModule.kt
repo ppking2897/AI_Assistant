@@ -3,6 +3,7 @@ package com.bianca.ai_assistant.di
 import android.content.Context
 import androidx.room.Room
 import com.bianca.ai_assistant.infrastructure.room.AppDatabase
+import com.bianca.ai_assistant.infrastructure.room.RecentActivityDao
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleDao
 import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
 import dagger.Module
@@ -21,6 +22,7 @@ object DatabaseModule {
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "task_app_db")
             .addMigrations(AppDatabase.DatabaseMigrations.MIGRATION_1_2)
+            .addMigrations(AppDatabase.DatabaseMigrations.MIGRATION_2_3)
             .build()
 
     @Provides
@@ -30,4 +32,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideArticleDao(db: AppDatabase): ArticleDao = db.articleDao()
+
+    @Provides
+    @Singleton
+    fun provideRepository(
+        db: AppDatabase
+    ): RecentActivityDao {
+        return db.recentActivityDao()
+    }
 }

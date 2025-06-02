@@ -19,6 +19,7 @@ import com.bianca.ai_assistant.infrastructure.alarm.PermissionFlow
 import com.bianca.ai_assistant.ui.bottomNavigation.MainApp
 import com.bianca.ai_assistant.ui.bottomNavigation.MainScreen
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.home.HomeViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
@@ -63,7 +64,8 @@ class MainActivity : ComponentActivity() {
 //                TaskListScreenWithViewModel(taskViewModel)
                 val articleViewModel: ArticleViewModel = hiltViewModel()
                 val homeViewModel: HomeViewModel = hiltViewModel()
-                MainApp(navController, taskViewModel, articleViewModel, homeViewModel)
+                val recentActivityViewModel:RecentActivityViewModel = hiltViewModel()
+                MainApp(navController, taskViewModel, articleViewModel, homeViewModel , recentActivityViewModel)
             }
         }
     }

@@ -32,7 +32,7 @@ enum class TaskFilter {
 }
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(private val repository: TaskRepository) : ViewModel() {
+class TaskViewModel @Inject constructor(private val repository: ITaskRepository) : ViewModel() {
 
     private val _tasks = MutableStateFlow<List<TaskEntity>>(emptyList())
     val tasks: StateFlow<List<TaskEntity>> = _tasks.asStateFlow()
@@ -76,6 +76,14 @@ class TaskViewModel @Inject constructor(private val repository: TaskRepository) 
         viewModelScope.launch {
             repository.addTask(task)
             loadTasks()
+        }
+    }
+
+    fun addTask(task: TaskEntity, onInserted: (TaskEntity) -> Unit) {
+        viewModelScope.launch {
+            val id = repository.insertTask(task)
+            val saved = task.copy(id = id)
+            onInserted(saved)
         }
     }
 

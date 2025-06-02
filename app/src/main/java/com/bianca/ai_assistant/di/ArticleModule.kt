@@ -1,7 +1,7 @@
 package com.bianca.ai_assistant.di
 
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleDao
-import com.bianca.ai_assistant.viewModel.article.ArticleRepository
+import com.bianca.ai_assistant.viewModel.article.IArticleRepository
 import com.bianca.ai_assistant.viewModel.article.ArticleRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -16,7 +16,7 @@ object ArticleModule {
     @ViewModelScoped
     fun provideArticleRepository(
         articleDao: ArticleDao,
-    ): ArticleRepository {
+    ): IArticleRepository {
         return ArticleRepositoryImpl(articleDao)
     }
 }

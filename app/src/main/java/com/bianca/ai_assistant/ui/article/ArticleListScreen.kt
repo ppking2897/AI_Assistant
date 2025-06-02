@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,6 +41,7 @@ import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.dialog.ArticleEditDialog
 import com.bianca.ai_assistant.ui.dialog.ConfirmDeleteDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 
@@ -49,6 +51,7 @@ import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 fun ArticleListScreenWithViewModel(
     viewModel: ArticleViewModel,
     taskViewModel: TaskViewModel,
+    recentActivityViewModel: RecentActivityViewModel,
     onArticleClick: (ArticleEntity) -> Unit,
     onTaskClick: (TaskEntity) -> Unit,
     navController: NavHostController,
@@ -94,22 +97,22 @@ fun ArticleListScreenWithViewModel(
             onConfirm = { title, content, taskId ->
                 if (editingArticle == null) {
                     // 新增
-                    viewModel.insertArticle(
-                        ArticleEntity(
-                            title = title,
-                            content = content,
-                            taskId = taskId
-                        )
-                    ) { showEditDialog = false }
+                    val newArticle = ArticleEntity(
+                        title = title,
+                        content = content,
+                        taskId = taskId
+                    )
+//                    viewModel.insertArticle(newArticle) { showEditDialog = false }
+                    recentActivityViewModel.recordArticleEvent("新增", newArticle)
                 } else {
                     // 編輯
-                    viewModel.updateArticle(
-                        editingArticle!!.copy(
-                            title = title,
-                            content = content,
-                            taskId = taskId
-                        )
-                    ) { showEditDialog = false }
+                    val updatedArticle = editingArticle!!.copy(
+                        title = title,
+                        content = content,
+                        taskId = taskId
+                    )
+//                    viewModel.updateArticle(updatedArticle) { showEditDialog = false }
+                    recentActivityViewModel.recordArticleEvent("編輯", updatedArticle)
                 }
             },
             onCancel = { showEditDialog = false }
@@ -122,6 +125,7 @@ fun ArticleListScreenWithViewModel(
             articleTitle = deletingArticle!!.title,
             onConfirm = {
                 viewModel.deleteArticle(deletingArticle!!) { showDeleteDialog = false }
+                recentActivityViewModel.recordArticleEvent("刪除", deletingArticle!!)
             },
             onCancel = { showDeleteDialog = false }
         )
@@ -151,7 +155,9 @@ fun ArticleListScreen(
     ) { padding ->
         LazyColumn(
             contentPadding = padding,
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+            modifier = Modifier
+                .padding(start = 8.dp, end = 8.dp)
+                .navigationBarsPadding()
         ) {
             items(articles) { article ->
                 ArticleListItem(

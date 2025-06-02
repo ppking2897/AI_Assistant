@@ -6,7 +6,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 
 
-interface ArticleRepository {
+interface IArticleRepository {
     suspend fun getAllArticles(): List<ArticleEntity>
     suspend fun getArticlesByTask(taskId: Long): List<ArticleEntity>
     suspend fun insertArticle(article: ArticleEntity): Long
@@ -18,7 +18,7 @@ interface ArticleRepository {
 
 class ArticleRepositoryImpl @Inject constructor(
     private val articleDao: ArticleDao,
-) : ArticleRepository {
+) : IArticleRepository {
 
     override suspend fun getAllArticles(): List<ArticleEntity> =
         articleDao.getAllArticles()

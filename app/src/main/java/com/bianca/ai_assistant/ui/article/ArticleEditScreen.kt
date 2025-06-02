@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
 import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -41,6 +42,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ArticleEditScreenWithViewModel(
     viewModel: ArticleViewModel,
+    recentActivityViewModel: RecentActivityViewModel,
     articleId: Long? = null,
     initialTaskId: Long? = null,
     allTasks: List<TaskEntity>,
@@ -78,22 +80,25 @@ fun ArticleEditScreenWithViewModel(
         initialTaskId = initialTaskId,
         onSave = { title, content, taskId ->
             if (article == null) {
-                viewModel.insertArticle(
-                    ArticleEntity(
-                        title = title,
-                        content = content,
-                        taskId = taskId
-                        // 其他欄位預設
-                    )
+                val newArticle = ArticleEntity(
+                    title = title,
+                    content = content,
+                    taskId = taskId
                 )
+                viewModel.insertArticle(newArticle) { savedArticle ->
+                    recentActivityViewModel.recordArticleEvent("新增", savedArticle)
+                    onSaveSuccess()
+                }
             } else {
-                viewModel.updateArticle(
-                    article!!.copy(
-                        title = title,
-                        content = content,
-                        taskId = taskId
-                    )
+                val updatedArticle = article!!.copy(
+                    title = title,
+                    content = content,
+                    taskId = taskId
                 )
+                viewModel.updateArticle(updatedArticle) { savedArticle ->
+                    recentActivityViewModel.recordArticleEvent("編輯", savedArticle)
+                    onSaveSuccess()
+                }
             }
             onSaveSuccess()
         },

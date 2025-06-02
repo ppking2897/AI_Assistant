@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.bianca.ai_assistant.R
 import com.bianca.ai_assistant.model.EventInfo
 import com.bianca.ai_assistant.model.HomeData
+import com.bianca.ai_assistant.model.RecentActivityDisplay
 import com.bianca.ai_assistant.model.WeatherInfo
-import com.bianca.ai_assistant.viewModel.article.ArticleRepository
-import com.bianca.ai_assistant.viewModel.task.TaskRepository
+import com.bianca.ai_assistant.viewModel.IRecentActivityRepository
+import com.bianca.ai_assistant.viewModel.article.IArticleRepository
+import com.bianca.ai_assistant.viewModel.task.ITaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +20,9 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val taskRepository: TaskRepository,
-    private val articleRepository: ArticleRepository
+    private val taskRepository: ITaskRepository,
+    private val articleRepository: IArticleRepository,
+    private val recentActivityRepository: IRecentActivityRepository
 ) : ViewModel() {
 
     val homeState: StateFlow<HomeData> =
@@ -27,8 +30,21 @@ class HomeViewModel @Inject constructor(
             taskRepository.getAllTasksFlow(),
             articleRepository.getAllArticlesFlow(),
             getWeatherInfoFlow(),
+            recentActivityRepository.getAllRecentActivities()
             // ...其他Flow
-        ) { tasks, articles , weather ->
+        ) { tasks, articles , weather ,  recentList->
+            val recentActivitiesDisplay = recentList.sortedByDescending { it.timestamp }
+                .take(5)
+                .map { activity ->
+                    val exist = when (activity.type) {
+                        "TASK" -> tasks.any { it.id == activity.refId }
+                        "ARTICLE" -> articles.any { it.id == activity.refId }
+                        "AI" -> true // AI 類型不需檢查
+                        else -> true
+                    }
+                    RecentActivityDisplay(activity, exist)
+                }
+
             HomeData(
                 weather = weather,
                 events = listOf(
@@ -37,17 +53,11 @@ class HomeViewModel @Inject constructor(
                     EventInfo("18:30", "家庭聚餐")
                 ),
                 aiSuggestion = "記得多喝水、保持專注哦！",
-                recentActivities = tasks.sortedByDescending { it.createdAt }
-                    .take(5)
-                    .map { task ->
-                        when {
-                            task.isDone -> "完成「${task.title}」"
-//                            task.createdAt == task.updatedAt -> "新增「${task.title}」"
-                            else -> "待處理「${task.title}」"
-                        }
-                    }
+                recentActivities = recentActivitiesDisplay
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeData.mock())
+
+
 
     // 模擬天氣資訊
     // 提供FLow 的天氣資訊

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -51,6 +50,7 @@ import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.ui.dialog.TaskEditDialog
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.utils.formatTimeShort
+import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskFilter
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 
@@ -70,6 +70,7 @@ import com.bianca.ai_assistant.viewModel.task.TaskViewModel
 @Composable
 fun TaskListScreenWithViewModel(
     viewModel: TaskViewModel,
+    recentActivityViewModel: RecentActivityViewModel,
     onTaskClick: (TaskEntity) -> Unit,
 ) {
 
@@ -78,7 +79,7 @@ fun TaskListScreenWithViewModel(
         val taskId: Long,
         val dueTime: Long,
         val title: String,
-        val requestKey: Long = System.currentTimeMillis() // 確保每次都是新物件
+        val requestKey: Long = System.currentTimeMillis(), // 確保每次都是新物件
     )
 
     val tasks by viewModel.filteredTasks.collectAsState()
@@ -105,16 +106,33 @@ fun TaskListScreenWithViewModel(
             showDialog = true
         },
         onTaskClick = onTaskClick,
-        onToggleTask = { viewModel.toggleTask(it) },
-        onDeleteTask = { viewModel.deleteTask(it) },
+        onToggleTask = {
+            viewModel.toggleTask(it)
+            recentActivityViewModel.recordTaskEvent(
+                if (!it.isDone) "完成" else "未完成", it
+            )
+        },
+        onDeleteTask = {
+            viewModel.deleteTask(it)
+            recentActivityViewModel.recordTaskEvent("刪除", it)
+        },
         showDialog = showDialog,
         editingTask = editingTask,
         onDismissDialog = { showDialog = false },
         onConfirmDialog = { task ->
             val isNew = editingTask == null
-            if (isNew) viewModel.addTask(task) else viewModel.updateTask(task)
+            if (isNew) {
+                viewModel.addTask(task){
+                    recentActivityViewModel.recordTaskEvent("新增", task)
+                }
+
+            } else {
+                viewModel.updateTask(task)
+                recentActivityViewModel.recordTaskEvent("編輯", task)
+            }
             if (task.dueTime != null && task.dueTime!! > System.currentTimeMillis()) {
-                alarmInfo = AlarmRequest(task.id, task.dueTime, task.title, System.currentTimeMillis())
+                alarmInfo =
+                    AlarmRequest(task.id, task.dueTime, task.title, System.currentTimeMillis())
             }
             showDialog = false
         }
@@ -233,7 +251,7 @@ fun TaskListScreen(
     onTaskClick: (TaskEntity) -> Unit = {},
     onEditTask: (TaskEntity) -> Unit = {},
     onToggleTask: (TaskEntity) -> Unit = {},
-    onDeleteTask: (TaskEntity) -> Unit = {}
+    onDeleteTask: (TaskEntity) -> Unit = {},
 ) {
     Scaffold(
         floatingActionButton = {

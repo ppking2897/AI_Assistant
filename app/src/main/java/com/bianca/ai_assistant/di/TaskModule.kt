@@ -1,7 +1,7 @@
 package com.bianca.ai_assistant.di
 
 import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
-import com.bianca.ai_assistant.viewModel.task.TaskRepository
+import com.bianca.ai_assistant.viewModel.task.ITaskRepository
 import com.bianca.ai_assistant.viewModel.task.TaskRepositoryImpl
 import dagger.Module
 import dagger.Provides
@@ -16,6 +16,6 @@ object TaskModule {
 
     @Provides
     @ViewModelScoped
-    fun provideTaskRepository(taskDao: TaskDao): TaskRepository =
+    fun provideTaskRepository(taskDao: TaskDao): ITaskRepository =
         TaskRepositoryImpl(taskDao)
 }

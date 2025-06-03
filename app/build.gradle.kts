@@ -1,3 +1,6 @@
+import java.util.Properties // 這一行請加在最上面！
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -12,6 +15,14 @@ plugins {
     id("com.google.firebase.crashlytics") version "3.0.3" apply false
     kotlin("kapt")
 }
+
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+val openWeatherMapApiKey: String = localProperties.getProperty("OPEN_WEATHER_MAP_API_KEY") ?: ""
+
 
 hilt {
     enableAggregatingTask = false
@@ -29,6 +40,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "OPEN_WEATHER_MAP_API_KEY", "\"$openWeatherMapApiKey\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -153,4 +170,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
 }

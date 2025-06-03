@@ -25,7 +25,8 @@ data class HomeData(
 }
 
 data class WeatherInfo(
-    val iconRes: Int,
+    val iconRes: Int? = null,        // 可選，給本地 icon 用
+    val iconUrl: String? = null,     // 新增，線上圖標
     val description: String,
     val temperatureHigh: String,
     val temperatureLow: String

@@ -2,25 +2,37 @@ package com.bianca.ai_assistant.ui.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.bianca.ai_assistant.R
 import com.bianca.ai_assistant.infrastructure.room.RecentActivityEntity
@@ -30,6 +42,7 @@ import com.bianca.ai_assistant.model.EventInfo
 import com.bianca.ai_assistant.model.HomeData
 import com.bianca.ai_assistant.model.RecentActivityDisplay
 import com.bianca.ai_assistant.model.WeatherInfo
+import com.bianca.ai_assistant.ui.normal.taiwanCityMap
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
 import com.bianca.ai_assistant.utils.formatDateTime
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
@@ -43,27 +56,87 @@ fun HomeScreenWithViewModel(
     onAddTask: () -> Unit = {},
     onAddNote: () -> Unit = {},
     onAskAI: () -> Unit = {},
-    onRecentActivityClick: (RecentActivityDisplay) -> Unit, // 新增
+    onRecentActivityClick: (RecentActivityDisplay) -> Unit,
 ) {
     val homeData by homeViewModel.homeState.collectAsState()
+    val isLoading by homeViewModel.isLoading.collectAsState()
 
-    HomeScreen(
-        homeData = homeData,
-        onAddTask = onAddTask,
-        onAddNote = onAddNote,
-        onAskAI = onAskAI,
-        onRecentActivityClick = onRecentActivityClick
-    )
+    val city by homeViewModel.city.collectAsState() // <--- 取得目前城市
+
+
+//    val pullRefreshState = rememberPullToRefreshState()
+
+
+//    PullToRefreshBox(
+//        isRefreshing = isLoading,
+//        onRefresh = homeViewModel::refreshWeather,
+//        state = pullRefreshState,
+//        indicator = {
+//            Indicator(
+//                modifier = Modifier.align(Alignment.TopCenter),
+//                isRefreshing = isLoading,
+//                containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                color = MaterialTheme.colorScheme.onPrimaryContainer,
+//                state = pullRefreshState
+//            )
+//        },
+//    ){
+//        HomeScreen(
+//            homeData = homeData,
+//            cityZh = cityZh,
+//            onCitySelected = {
+//                homeViewModel.setCity(it)
+//                homeViewModel.refreshWeather() // 選完立即刷新
+//            },
+//            onAddTask = onAddTask,
+//            onAddNote = onAddNote,
+//            onAskAI = onAskAI,
+//            onRecentActivityClick = onRecentActivityClick
+//        )
+//    }
+
+    // city == null 時，顯示 loading
+    if (city == null) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp)
+                .height(120.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        val cityZh = city!!.first
+        HomeScreen(
+            homeData = homeData,
+            cityZh = cityZh,
+            onCitySelected = {
+                homeViewModel.setCity(it)
+                homeViewModel.refreshWeather()
+            },
+            onAddTask = onAddTask,
+            onAddNote = onAddNote,
+            onAskAI = onAskAI,
+            onRecentActivityClick = onRecentActivityClick,
+            isLoading = isLoading,
+            onRefreshClick = homeViewModel::refreshWeather
+        )
+    }
 }
 
 @ExperimentalMaterial3Api
 @Composable
 fun HomeScreen(
     homeData: HomeData,
+    cityZh: String,
+    onCitySelected: (Pair<String, String>) -> Unit,
     onAddTask: () -> Unit = {},
     onAddNote: () -> Unit = {},
     onAskAI: () -> Unit = {},
     onRecentActivityClick: (RecentActivityDisplay) -> Unit,
+    isLoading: Boolean,
+    onRefreshClick: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("今日摘要") }) }
@@ -80,7 +153,13 @@ fun HomeScreen(
                     temperatureHigh = homeData.weather.temperatureHigh,
                     temperatureLow = homeData.weather.temperatureLow,
                     weatherDescription = homeData.weather.description,
-                    iconRes = homeData.weather.iconRes
+                    iconRes = homeData.weather.iconRes,
+                    iconUrl = homeData.weather.iconUrl,
+                    currentCityZh = cityZh,
+                    cityMap = taiwanCityMap,
+                    onCitySelected = onCitySelected,
+                    isLoading = isLoading,
+                    onRefreshClick = onRefreshClick
                 )
             }
             item {
@@ -183,6 +262,18 @@ fun RecentActivityItem(
 @Preview(showBackground = true, name = "FlowAI 首頁預覽")
 @Composable
 fun PreviewHomeScreen() {
+    // 模擬城市選單
+    val fakeTaiwanCityMap = listOf(
+        "臺北市" to "Taipei",
+        "新北市" to "New Taipei",
+        "桃園市" to "Taoyuan",
+        "臺中市" to "Taichung",
+        "臺南市" to "Tainan",
+        "高雄市" to "Kaohsiung"
+        // ...可再加
+    )
+    var previewCityZh by remember { mutableStateOf("臺中市") }
+
     val mockRecentActivities = listOf(
         RecentActivityDisplay(
             RecentActivityEntity(
@@ -219,7 +310,6 @@ fun PreviewHomeScreen() {
         )
     )
 
-
     val mockData = HomeData(
         weather = WeatherInfo(
             iconRes = R.drawable.ic_weather_sunny,
@@ -235,10 +325,19 @@ fun PreviewHomeScreen() {
         aiSuggestion = "記得多喝水、保持專注哦！",
         recentActivities = mockRecentActivities
     )
+
     AI_AssistantTheme {
+        // 傳 previewCityZh，且 onCitySelected 也更新預覽選項
         HomeScreen(
             homeData = mockData,
-            onRecentActivityClick = {}
+            cityZh = previewCityZh,
+            onCitySelected = { (zh, _) -> previewCityZh = zh },
+            onRecentActivityClick = {},
+            onAddTask = {},
+            onAddNote = {},
+            onAskAI = {},
+            isLoading = false,
         )
     }
 }
+

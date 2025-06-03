@@ -59,27 +59,28 @@ fun CitySelector(
 }
 
 val taiwanCityMap = listOf(
+    "基隆市" to "Keelung",
     "臺北市" to "Taipei",
     "新北市" to "New Taipei",
     "桃園市" to "Taoyuan",
-    "臺中市" to "Taichung",
-    "臺南市" to "Tainan",
-    "高雄市" to "Kaohsiung",
-    "基隆市" to "Keelung",
     "新竹市" to "Hsinchu",
-    "嘉義市" to "Chiayi",
     "新竹縣" to "Hsinchu County",
+    "宜蘭縣" to "Yilan",
     "苗栗縣" to "Miaoli",
+    "臺中市" to "Taichung",
     "彰化縣" to "Changhua",
     "南投縣" to "Nantou",
     "雲林縣" to "Yunlin",
+    "嘉義市" to "Chiayi",
     "嘉義縣" to "Chiayi County",
+    "臺南市" to "Tainan",
+    "高雄市" to "Kaohsiung",
     "屏東縣" to "Pingtung",
-    "宜蘭縣" to "Yilan",
     "花蓮縣" to "Hualien",
     "臺東縣" to "Taitung",
+    "澎湖縣" to "Penghu",
     "金門縣" to "Kinmen",
-    "連江縣" to "Lienchiang",
-    "澎湖縣" to "Penghu"
+    "連江縣" to "Lienchiang"
 )
+
 

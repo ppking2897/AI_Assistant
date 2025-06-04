@@ -23,6 +23,7 @@ import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.home.HomeViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
+import com.bianca.ai_assistant.viewModel.weather.WeekWeatherViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -64,8 +65,16 @@ class MainActivity : ComponentActivity() {
 //                TaskListScreenWithViewModel(taskViewModel)
                 val articleViewModel: ArticleViewModel = hiltViewModel()
                 val homeViewModel: HomeViewModel = hiltViewModel()
-                val recentActivityViewModel:RecentActivityViewModel = hiltViewModel()
-                MainApp(navController, taskViewModel, articleViewModel, homeViewModel , recentActivityViewModel)
+                val recentActivityViewModel: RecentActivityViewModel = hiltViewModel()
+                val weekWeatherViewModel: WeekWeatherViewModel = hiltViewModel()
+                MainApp(
+                    navController,
+                    taskViewModel,
+                    articleViewModel,
+                    homeViewModel,
+                    recentActivityViewModel,
+                    weekWeatherViewModel
+                )
             }
         }
     }

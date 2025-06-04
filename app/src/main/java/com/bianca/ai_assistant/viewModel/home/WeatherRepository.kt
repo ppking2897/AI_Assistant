@@ -46,8 +46,8 @@ class WeatherRepositoryImpl(
                         WeatherInfo(
                             iconUrl = "https://openweathermap.org/img/wn/${response.weather.firstOrNull()?.icon}@2x.png",
                             description = response.weather.firstOrNull()?.description ?: "",
-                            temperatureHigh = "${response.main.temp_max}°",
-                            temperatureLow = "${response.main.temp_min}°"
+                            temperatureHigh = String.format("%.1f", response.main.temp_max),
+                            temperatureLow = String.format("%.1f", response.main.temp_min)
                         )
                     )
                 } catch (e: Exception) {

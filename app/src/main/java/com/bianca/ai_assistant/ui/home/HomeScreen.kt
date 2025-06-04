@@ -18,12 +18,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.bianca.ai_assistant.R
 import com.bianca.ai_assistant.infrastructure.room.RecentActivityEntity
@@ -57,6 +52,7 @@ fun HomeScreenWithViewModel(
     onAddNote: () -> Unit = {},
     onAskAI: () -> Unit = {},
     onRecentActivityClick: (RecentActivityDisplay) -> Unit,
+    onNavigateToWeekWeather: (String) -> Unit,
 ) {
     val homeData by homeViewModel.homeState.collectAsState()
     val isLoading by homeViewModel.isLoading.collectAsState()
@@ -120,7 +116,8 @@ fun HomeScreenWithViewModel(
             onAskAI = onAskAI,
             onRecentActivityClick = onRecentActivityClick,
             isLoading = isLoading,
-            onRefreshClick = homeViewModel::refreshWeather
+            onRefreshClick = homeViewModel::refreshWeather,
+            onNavigateToWeekWeather = onNavigateToWeekWeather
         )
     }
 }
@@ -136,7 +133,8 @@ fun HomeScreen(
     onAskAI: () -> Unit = {},
     onRecentActivityClick: (RecentActivityDisplay) -> Unit,
     isLoading: Boolean,
-    onRefreshClick: () -> Unit = {}
+    onRefreshClick: () -> Unit = {},
+    onNavigateToWeekWeather: (String) -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("今日摘要") }) }
@@ -159,7 +157,8 @@ fun HomeScreen(
                     cityMap = taiwanCityMap,
                     onCitySelected = onCitySelected,
                     isLoading = isLoading,
-                    onRefreshClick = onRefreshClick
+                    onRefreshClick = onRefreshClick,
+                    onNavigateToWeekWeather = onNavigateToWeekWeather
                 )
             }
             item {
@@ -337,6 +336,9 @@ fun PreviewHomeScreen() {
             onAddNote = {},
             onAskAI = {},
             isLoading = false,
+            onNavigateToWeekWeather = {
+
+            }
         )
     }
 }

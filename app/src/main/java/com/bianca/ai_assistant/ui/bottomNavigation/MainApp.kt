@@ -18,7 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,13 +33,14 @@ import com.bianca.ai_assistant.ui.article.ArticleDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleEditScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleListScreenWithViewModel
 import com.bianca.ai_assistant.ui.home.HomeScreenWithViewModel
-import com.bianca.ai_assistant.ui.home.RecentActivityScreen
 import com.bianca.ai_assistant.ui.task.TaskDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskListScreenWithViewModel
+import com.bianca.ai_assistant.ui.weather.Forecast5Route
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.home.HomeViewModel
 import com.bianca.ai_assistant.viewModel.task.TaskViewModel
+import com.bianca.ai_assistant.viewModel.weather.WeekWeatherViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +51,7 @@ fun MainApp(
     articleViewModel: ArticleViewModel,
     homeViewModel: HomeViewModel,
     recentActivityViewModel: RecentActivityViewModel,
+    weekWeatherViewModel: WeekWeatherViewModel,
     // ... 其他 ViewModel
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -139,7 +140,8 @@ fun MainApp(
                             when (activity.type) {
                                 "TASK" -> activity.refId?.let { navController.navigate("taskDetail/$it") }
                                 "ARTICLE" -> activity.refId?.let { navController.navigate("articleDetail/$it") }
-                                "AI" -> { /* ... */ }
+                                "AI" -> { /* ... */
+                                }
                             }
                         } else {
                             // 不跳頁，給 SnackBar/Toast
@@ -147,6 +149,9 @@ fun MainApp(
                                 snackbarHostState.showSnackbar("資料已刪除，無法瀏覽")
                             }
                         }
+                    },
+                    onNavigateToWeekWeather = { city ->
+                        navController.navigate("weatherDetail?city=$city")
                     }
                 )
             }
@@ -241,6 +246,14 @@ fun MainApp(
                         navController.popBackStack()
                     }
                 )
+            }
+
+            composable("weatherDetail?city={city}") { backStackEntry ->
+                val city = backStackEntry.arguments?.getString("city")
+                // WeatherDetailScreen(city) // 假設有個天氣詳情頁
+                Forecast5Route(viewModel = weekWeatherViewModel, city = city ?: "Taipei") {
+
+                }
             }
 
 //            composable("recentActivity") {

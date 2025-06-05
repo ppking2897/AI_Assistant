@@ -62,6 +62,8 @@ class TaskViewModel @Inject constructor(private val repository: ITaskRepository)
                         true
                     ) == true)
                 }
+                // 未完成在前，已完成在後
+                .sortedWith(compareBy<TaskEntity> { it.isDone }.thenBy { it.dueTime ?: Long.MAX_VALUE })
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {

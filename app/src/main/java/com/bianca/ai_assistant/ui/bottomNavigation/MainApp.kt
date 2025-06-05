@@ -35,6 +35,7 @@ import com.bianca.ai_assistant.ui.article.ArticleListScreenWithViewModel
 import com.bianca.ai_assistant.ui.home.HomeScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskListScreenWithViewModel
+import com.bianca.ai_assistant.ui.calendar.CalendarScreenWithViewModel
 import com.bianca.ai_assistant.ui.weather.Forecast5Route
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
@@ -152,6 +153,9 @@ fun MainApp(
                     },
                     onNavigateToWeekWeather = { city ->
                         navController.navigate("weatherDetail?city=$city")
+                    },
+                    onEventsClick = {
+                        navController.navigate("calendar")
                     }
                 )
             }
@@ -254,6 +258,10 @@ fun MainApp(
                 Forecast5Route(viewModel = weekWeatherViewModel, city = city ?: "Taipei") {
 
                 }
+            }
+
+            composable("calendar") {
+                CalendarScreenWithViewModel()
             }
 
 //            composable("recentActivity") {

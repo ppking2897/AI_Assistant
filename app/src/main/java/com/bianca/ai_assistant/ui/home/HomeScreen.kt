@@ -53,6 +53,7 @@ fun HomeScreenWithViewModel(
     onAskAI: () -> Unit = {},
     onRecentActivityClick: (RecentActivityDisplay) -> Unit,
     onNavigateToWeekWeather: (String) -> Unit,
+    onEventsClick: () -> Unit,
 ) {
     val homeData by homeViewModel.homeState.collectAsState()
     val isLoading by homeViewModel.isLoading.collectAsState()
@@ -117,7 +118,8 @@ fun HomeScreenWithViewModel(
             onRecentActivityClick = onRecentActivityClick,
             isLoading = isLoading,
             onRefreshClick = homeViewModel::refreshWeather,
-            onNavigateToWeekWeather = onNavigateToWeekWeather
+            onNavigateToWeekWeather = onNavigateToWeekWeather,
+            onEventsClick = onEventsClick
         )
     }
 }
@@ -135,6 +137,7 @@ fun HomeScreen(
     isLoading: Boolean,
     onRefreshClick: () -> Unit = {},
     onNavigateToWeekWeather: (String) -> Unit,
+    onEventsClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("今日摘要") }) }
@@ -163,7 +166,8 @@ fun HomeScreen(
             }
             item {
                 EventSummaryCard(
-                    events = homeData.events.map { "${it.time} ${it.title}" }
+                    events = homeData.events.map { "${it.time} ${it.title}" },
+                    onClick = onEventsClick
                 )
             }
             item {

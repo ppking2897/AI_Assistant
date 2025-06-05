@@ -14,10 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EventSummaryCard(events: List<String>) {
+fun EventSummaryCard(events: List<String>, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {

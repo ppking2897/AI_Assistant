@@ -6,6 +6,7 @@ import com.bianca.ai_assistant.infrastructure.room.AppDatabase
 import com.bianca.ai_assistant.infrastructure.room.RecentActivityDao
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleDao
 import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
+import com.bianca.ai_assistant.infrastructure.room.event.EventDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,6 +24,7 @@ object DatabaseModule {
         Room.databaseBuilder(context, AppDatabase::class.java, "task_app_db")
             .addMigrations(AppDatabase.DatabaseMigrations.MIGRATION_1_2)
             .addMigrations(AppDatabase.DatabaseMigrations.MIGRATION_2_3)
+            .addMigrations(AppDatabase.DatabaseMigrations.MIGRATION_3_4)
             .build()
 
     @Provides
@@ -40,4 +42,8 @@ object DatabaseModule {
     ): RecentActivityDao {
         return db.recentActivityDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideEventDao(db: AppDatabase): EventDao = db.eventDao()
 }

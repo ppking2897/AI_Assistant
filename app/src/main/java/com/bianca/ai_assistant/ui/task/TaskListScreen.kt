@@ -134,19 +134,21 @@ fun TaskListScreenWithViewModel(
         onConfirmDialog = { task ->
             val isNew = editingTask == null
             if (isNew) {
-                viewModel.addTask(task) {
-                    recentActivityViewModel.recordTaskEvent("新增", task)
+                viewModel.addTask(task) { saved ->
+                    recentActivityViewModel.recordTaskEvent("新增", saved)
+                    if (saved.dueTime != null && saved.dueTime!! > System.currentTimeMillis()) {
+                        alarmInfo = AlarmRequest(saved.id, saved.dueTime, saved.title)
+                    }
+                    showDialog = false
                 }
-
             } else {
                 viewModel.updateTask(task)
                 recentActivityViewModel.recordTaskEvent("編輯", task)
+                if (task.dueTime != null && task.dueTime!! > System.currentTimeMillis()) {
+                    alarmInfo = AlarmRequest(task.id, task.dueTime, task.title)
+                }
+                showDialog = false
             }
-            if (task.dueTime != null && task.dueTime!! > System.currentTimeMillis()) {
-                alarmInfo =
-                    AlarmRequest(task.id, task.dueTime, task.title, System.currentTimeMillis())
-            }
-            showDialog = false
         }
     )
 

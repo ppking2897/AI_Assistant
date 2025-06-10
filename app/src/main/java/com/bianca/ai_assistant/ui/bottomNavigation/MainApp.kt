@@ -32,11 +32,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.bianca.ai_assistant.ui.article.ArticleDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleEditScreenWithViewModel
 import com.bianca.ai_assistant.ui.article.ArticleListScreenWithViewModel
+import com.bianca.ai_assistant.ui.calendar.CalendarScreenWithViewModel
 import com.bianca.ai_assistant.ui.home.HomeScreenWithViewModel
+import com.bianca.ai_assistant.ui.record.ChatRoute
 import com.bianca.ai_assistant.ui.task.TaskDetailScreenWithViewModel
 import com.bianca.ai_assistant.ui.task.TaskListScreenWithViewModel
-import com.bianca.ai_assistant.ui.calendar.CalendarScreenWithViewModel
 import com.bianca.ai_assistant.ui.weather.Forecast5Route
+import com.bianca.ai_assistant.viewModel.chat.ChatViewModel
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.home.HomeViewModel
@@ -53,6 +55,7 @@ fun MainApp(
     homeViewModel: HomeViewModel,
     recentActivityViewModel: RecentActivityViewModel,
     weekWeatherViewModel: WeekWeatherViewModel,
+    chatViewModel: ChatViewModel,
     // ... 其他 ViewModel
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -228,6 +231,9 @@ fun MainApp(
             // 其餘分頁/功能頁
             composable(MainScreen.AI.route) {
 //                AiScreen()
+                ChatRoute(chatViewModel, onHistoryClick = {
+//                    navController.navigate("recentActivity")
+                })
             }
             composable(MainScreen.Profile.route) {
 //                ProfileScreen()

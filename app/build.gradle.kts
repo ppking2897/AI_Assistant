@@ -8,13 +8,15 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 
-    // Make sure that you have the Google services Gradle plugin 4.4.1+ dependency
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    // Make sure that you have the Google services Gradle plugin
+    id("com.google.gms.google-services")
 
-    // Add the dependency for the Crashlytics Gradle plugin
-    id("com.google.firebase.crashlytics") version "3.0.3" apply false
+    // Add the Crashlytics Gradle plugin
+    id("com.google.firebase.crashlytics")
     kotlin("kapt")
 }
+
+
 
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
@@ -50,16 +52,40 @@ android {
     }
 
     buildTypes {
-        release {
+        debug {
+            buildConfigField("boolean", "LOG_DEBUG", "true")
+            isDebuggable = true
             isMinifyEnabled = false
+            isShrinkResources = false
+
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+        }
+
+        release {
+            buildConfigField("boolean", "LOG_DEBUG", "false")
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
+
     compileOptions {
-        isCoreLibraryDesugaringEnabled =true
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -68,6 +94,25 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    flavorDimensions+="environment"
+
+    productFlavors {
+        create("beta") {
+            buildConfigField("String", "ENVIRONMENT_TYPE", "\"beta\"")
+            dimension = "environment"
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
+        }
+
+        create("product") {
+            buildConfigField("String", "ENVIRONMENT_TYPE", "\"product\"")
+            dimension = "environment"
+            applicationIdSuffix = ".product"
+            versionNameSuffix = "-product"
+        }
+
     }
 }
 
@@ -81,6 +126,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.firebase.appcheck.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,7 +136,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.androidx.navigation.compose)
-    androidTestImplementation (libs.androidx.navigation.testing)
+    androidTestImplementation(libs.androidx.navigation.testing)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
@@ -146,9 +192,12 @@ dependencies {
     implementation(libs.androidx.room.ktx)
 
     //firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.15.0")) // 已更新為最新穩定版本
+    implementation("com.google.firebase:firebase-ai:16.1.0")
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging)
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
 
     implementation(libs.androidx.material.icons.extended)
 
@@ -175,9 +224,7 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
-    implementation ("com.kizitonwose.calendar:compose:2.7.0")
+    implementation("com.kizitonwose.calendar:compose:2.7.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-
-//    implementation("com.kizitonwose.calendar:compose-multiplatform:2.7.0")
 
 }

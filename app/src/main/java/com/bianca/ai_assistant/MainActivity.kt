@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import com.bianca.ai_assistant.infrastructure.alarm.PermissionFlow
 import com.bianca.ai_assistant.ui.bottomNavigation.MainApp
 import com.bianca.ai_assistant.ui.bottomNavigation.MainScreen
 import com.bianca.ai_assistant.ui.theme.AI_AssistantTheme
+import com.bianca.ai_assistant.viewModel.chat.ChatViewModel
 import com.bianca.ai_assistant.viewModel.RecentActivityViewModel
 import com.bianca.ai_assistant.viewModel.article.ArticleViewModel
 import com.bianca.ai_assistant.viewModel.home.HomeViewModel
@@ -32,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
             val navController = rememberNavController()
             NotificationNavigationHandler(navController, intent)
@@ -67,13 +70,21 @@ class MainActivity : ComponentActivity() {
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val recentActivityViewModel: RecentActivityViewModel = hiltViewModel()
                 val weekWeatherViewModel: WeekWeatherViewModel = hiltViewModel()
+                val chatViewModel : ChatViewModel = hiltViewModel()
+
+//                Button(onClick = {
+//                    throw RuntimeException("Test Crash") // Force a crash
+//                }){
+//                    Text(text = "測試按鈕")
+//                }
                 MainApp(
                     navController,
                     taskViewModel,
                     articleViewModel,
                     homeViewModel,
                     recentActivityViewModel,
-                    weekWeatherViewModel
+                    weekWeatherViewModel,
+                    chatViewModel
                 )
             }
         }

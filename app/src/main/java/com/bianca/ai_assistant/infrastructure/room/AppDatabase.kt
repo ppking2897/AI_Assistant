@@ -6,14 +6,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleDao
 import com.bianca.ai_assistant.infrastructure.room.article.ArticleEntity
-import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
-import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 import com.bianca.ai_assistant.infrastructure.room.event.EventDao
 import com.bianca.ai_assistant.infrastructure.room.event.EventEntity
+import com.bianca.ai_assistant.infrastructure.room.task.TaskDao
+import com.bianca.ai_assistant.infrastructure.room.task.TaskEntity
 
 @Database(
-    entities = [TaskEntity::class, ArticleEntity::class, RecentActivityEntity::class, EventEntity::class],
-    version = 4,
+    entities = [MessageEntity::class, TaskEntity::class, ArticleEntity::class, RecentActivityEntity::class, EventEntity::class],
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -21,6 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun articleDao(): ArticleDao
     abstract fun recentActivityDao(): RecentActivityDao
     abstract fun eventDao(): EventDao
+    abstract fun messageCao(): MessageDao
 
     object DatabaseMigrations {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -73,6 +74,28 @@ abstract class AppDatabase : RoomDatabase() {
             )
             """.trimIndent()
                 )
+            }
+        }
+
+        // 在你的 Database 類別外部（或 companion object）定義：
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                who TEXT NOT NULL,
+                content TEXT NOT NULL,
+                time INTEGER NOT NULL
+            )
+            """.trimIndent()
+                )
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE messages ADD COLUMN type TEXT NOT NULL DEFAULT 'note' ")
             }
         }
     }
